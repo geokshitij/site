@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from './components/Icon';
+import SimpleMarkdown from './components/SimpleMarkdown';
 import { 
     contactInfo, 
     aboutMeText, 
@@ -13,7 +14,6 @@ import {
     lawOfAveragesEssay,
     timeManagementEssay
 } from './data';
-import { Publication, TimelineItem } from './types';
 
 const AsciiArt = () => (
   <pre className="text-teal-300 text-sm md:text-base">
@@ -27,95 +27,62 @@ const AsciiArt = () => (
   </pre>
 );
 
-const Prompt: React.FC<{ command: string; onCommandChange: (cmd: string) => void; handleCommand: () => void; }> = ({ command, onCommandChange, handleCommand }) => {
-    const inputRef = useRef<HTMLInputElement>(null);
-    
-    const focusInput = () => {
-        inputRef.current?.focus();
-    }
-
-    useEffect(() => {
-        focusInput();
-        document.addEventListener('click', focusInput);
-        return () => {
-            document.removeEventListener('click', focusInput);
-        }
-    }, []);
-
-    return (
-        <div className="flex items-center">
-            <span className="text-teal-300">kdahal</span>
-            <span className="text-slate-400">@</span>
-            <span className="text-fuchsia-400">geokshitij.github.io</span>
-            <span className="text-slate-400">:$ ~ </span>
-            <form onSubmit={(e) => { e.preventDefault(); handleCommand(); }} className="flex-1">
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={command}
-                    onChange={(e) => onCommandChange(e.target.value)}
-                    className="prompt-input"
-                    autoFocus
-                    spellCheck="false"
-                    autoComplete="off"
-                />
-            </form>
-        </div>
-    );
+const commandList = {
+    'help': 'Shows this help message.',
+    'about': 'Displays my summary.',
+    'contact': 'Shows my contact information.',
+    'publications': 'Lists my journal publications.',
+    'highlights': 'Shows recent highlights.',
+    'experience': 'Displays my professional experience.',
+    'education': 'Displays my academic background.',
+    'books': 'Lists my favorite books.',
+    'wisdom': 'Shares some life philosophies.',
+    'datascience': 'My thoughts on data-driven science.',
+    'vipassana': 'My thoughts on meditation.',
+    'lawofaverages': 'My thoughts on persistence.',
+    'timemanagement': 'My thoughts on productivity.',
+    'clear': 'Clears the terminal screen.',
+    'ls': 'Lists all available commands.',
+    'll': 'Lists all available commands with descriptions.'
 };
-
-const SimpleMarkdown: React.FC<{ text: string }> = ({ text }) => {
-    const parts = text.split(/(\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|\*.*?\*)/);
-    return (
-        <>
-            {parts.map((part, i) => {
-                if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={i}>{part.slice(2, -2)}</strong>;
-                }
-                if (part.startsWith('*') && part.endsWith('*')) {
-                    return <em key={i}>{part.slice(1, -1)}</em>;
-                }
-                const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
-                if (linkMatch) {
-                    return <a href={linkMatch[2]} key={i} target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">{linkMatch[1]}</a>;
-                }
-                return <span key={i}>{part}</span>;
-            })}
-        </>
-    );
-};
-
+const commands = Object.keys(commandList);
 
 const App: React.FC = () => {
     const [command, setCommand] = useState('');
     const [history, setHistory] = useState<React.ReactNode[]>([]);
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
+    const inputRef = useRef<HTMLInputElement>(null);
     const terminalEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
-        terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        terminalEndRef.current?.scrollIntoView();
     };
 
     useEffect(() => {
         scrollToBottom();
     }, [history]);
-    
-    const welcomeMessage = (
-        <div key="welcome">
-            <AsciiArt />
-            <p className="mt-4">Welcome to my interactive portfolio.</p>
-            <p>Type <span className="text-amber-300">'help'</span> to see a list of available commands.</p>
-        </div>
-    );
+
+    const focusInput = () => {
+        inputRef.current?.focus();
+    };
 
     useEffect(() => {
+        const welcomeMessage = (
+            <div key="welcome">
+                <AsciiArt />
+                <p className="mt-4">Welcome to my interactive portfolio.</p>
+                <p>Type <span className="text-amber-300">'help'</span> to see a list of available commands.</p>
+            </div>
+        );
         setHistory([welcomeMessage]);
     }, []);
 
     const executeCommand = (cmd: string) => {
+        const commandName = cmd.toLowerCase().trim().split(' ')[0];
         let output: React.ReactNode;
-        switch (cmd.toLowerCase().trim().split(' ')[0]) {
+
+        switch (commandName) {
             case 'help':
                 output = (
                     <div>
@@ -124,29 +91,29 @@ const App: React.FC = () => {
                             <div>
                                 <p className="text-fuchsia-400 mt-2 font-semibold">Main</p>
                                 <ul className="space-y-1">
-                                    <li><span className="text-amber-300 w-28 inline-block">about</span> - Summary about me.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">contact</span> - Contact information.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">clear</span> - Clears the terminal.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">about</span> - Summary about me.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">contact</span> - Contact information.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">clear</span> - Clears the terminal.</li>
                                 </ul>
                             </div>
                             <div>
                                 <p className="text-fuchsia-400 mt-2 font-semibold">CV</p>
                                 <ul className="space-y-1">
-                                    <li><span className="text-amber-300 w-28 inline-block">publications</span> - Journal publications.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">highlights</span> - Recent highlights.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">experience</span> - Professional experience.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">education</span> - Academic background.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">publications</span> - Journal publications.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">highlights</span> - Recent highlights.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">experience</span> - Professional experience.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">education</span> - Academic background.</li>
                                 </ul>
                             </div>
                             <div>
                                 <p className="text-fuchsia-400 mt-2 font-semibold">Musings</p>
                                 <ul className="space-y-1">
-                                    <li><span className="text-amber-300 w-28 inline-block">books</span> - Favorite books.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">wisdom</span> - Life philosophies.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">datascience</span> - On data-driven science.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">vipassana</span> - On meditation.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">lawofaverages</span> - On persistence.</li>
-                                    <li><span className="text-amber-300 w-28 inline-block">timemanagement</span> - On productivity.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">books</span> - Favorite books.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">wisdom</span> - Life philosophies.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">datascience</span> - On data-driven science.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">vipassana</span> - On meditation.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">lawofaverages</span> - On persistence.</li>
+                                    <li><span className="text-amber-300 w-40 inline-block">timemanagement</span> - On productivity.</li>
                                 </ul>
                             </div>
                         </div>
@@ -154,28 +121,16 @@ const App: React.FC = () => {
                 );
                 break;
             case 'about':
-                output = (
-                    <div className="space-y-2">
-                        {aboutMeText.split('\n').map((paragraph, i) => (
-                             <p key={i}><SimpleMarkdown text={paragraph} /></p>
-                        ))}
-                    </div>
-                );
+                output = <div className="space-y-2">{aboutMeText.split('\n').map((p, i) => <p key={i}><SimpleMarkdown text={p} /></p>)}</div>;
                 break;
             case 'contact':
                 output = (
                     <div>
-                        {contactInfo.emails.map(email => (
-                           <p key={email}><Icon name="email" className="inline-block h-4 w-4 mr-2" /> <a href={`mailto:${email}`} className="text-sky-400 hover:underline">{email}</a></p>
-                        ))}
+                        {contactInfo.emails.map(email => <p key={email}><Icon name="email" className="inline-block h-4 w-4 mr-2" /> <a href={`mailto:${email}`} className="text-sky-400 hover:underline">{email}</a></p>)}
                         <p><Icon name="phone" className="inline-block h-4 w-4 mr-2" /> {contactInfo.phone}</p>
                         <p><Icon name="location" className="inline-block h-4 w-4 mr-2" /> {contactInfo.address}</p>
                         <div className="mt-2 flex space-x-4 flex-wrap">
-                            {contactInfo.links.map(link => (
-                                <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-sky-400 hover:underline mt-1">
-                                    <Icon name={link.icon} className="h-4 w-4 mr-1" /> {link.name}
-                                </a>
-                            ))}
+                            {contactInfo.links.map(link => <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-sky-400 hover:underline mt-1"><Icon name={link.icon} className="h-4 w-4 mr-1" /> {link.name}</a>)}
                         </div>
                     </div>
                 );
@@ -189,11 +144,7 @@ const App: React.FC = () => {
                                {pub.featured && <p className="text-yellow-400 font-bold">[FEATURED]</p>}
                                <p><span className="text-green-400">{pub.title}</span></p>
                                <p className="text-sm text-slate-400">{pub.authors} ({pub.year}). <span className="italic">{pub.journal}</span>.</p>
-                               {pub.link ? (
-                                   <a href={pub.link} target="_blank" rel="noopener noreferrer" className="text-sky-400 text-sm hover:underline">Read More &rarr;</a>
-                               ) : (
-                                   pub.status && <span className="text-sm text-gray-500">{pub.status}</span>
-                               )}
+                               {pub.link ? <a href={pub.link} target="_blank" rel="noopener noreferrer" className="text-sky-400 text-sm hover:underline">Read More &rarr;</a> : (pub.status && <span className="text-sm text-gray-500">{pub.status}</span>)}
                            </div>
                         ))}
                     </div>
@@ -201,22 +152,17 @@ const App: React.FC = () => {
                 break;
             case 'experience':
             case 'education':
-                 const itemsToDisplay = timelineItems.filter(item => item.type === cmd);
-                 const title = cmd.charAt(0).toUpperCase() + cmd.slice(1);
+                 const itemsToDisplay = timelineItems.filter(item => item.type === commandName);
+                 const title = commandName.charAt(0).toUpperCase() + commandName.slice(1);
                  output = (
                      <div>
                          <p className="font-bold mb-2">{title}:</p>
-                         {itemsToDisplay.map((item, i) => {
-                             const isEducation = item.type === 'education';
-                             return (
-                                <div key={i} className="mb-3">
-                                    <p className="text-green-400">{isEducation ? (item as any).degree : (item as any).title}</p>
-                                    <p className="text-sm text-slate-400">
-                                        {isEducation ? (item as any).university : (item as any).organization} | {item.dates}
-                                    </p>
-                                </div>
-                             )
-                         })}
+                         {itemsToDisplay.map((item, i) => (
+                            <div key={i} className="mb-3">
+                                <p className="text-green-400">{item.type === 'education' ? (item as any).degree : (item as any).title}</p>
+                                <p className="text-sm text-slate-400">{item.type === 'education' ? (item as any).university : (item as any).organization} | {item.dates}</p>
+                            </div>
+                         ))}
                      </div>
                  );
                  break;
@@ -226,7 +172,7 @@ const App: React.FC = () => {
                         <p className="font-bold mb-2">Highlights:</p>
                         {highlights.map((item, i) => (
                            <div key={i} className="mb-2 flex">
-                               <span className="text-slate-400 w-20 inline-block">{item.date}</span>
+                               <span className="text-slate-400 mr-4">{item.date}</span>
                                <div className="flex-1"><SimpleMarkdown text={item.description} /></div>
                            </div>
                         ))}
@@ -237,9 +183,7 @@ const App: React.FC = () => {
                 output = (
                     <div>
                         <p className="font-bold mb-2">I wish someone had told me:</p>
-                        <ul className="list-disc list-inside space-y-1 text-slate-300">
-                            {wisdom.map((w, i) => <li key={i}>{w}</li>)}
-                        </ul>
+                        <ul className="list-disc list-inside space-y-1 text-slate-300">{wisdom.map((w, i) => <li key={i}>{w}</li>)}</ul>
                     </div>
                 );
                 break;
@@ -247,9 +191,7 @@ const App: React.FC = () => {
                 output = (
                     <div>
                         <p className="font-bold mb-2">Favourite Books:</p>
-                        <ul className="list-disc list-inside space-y-1">
-                            {books.map((book, i) => <li key={i}><span className="text-green-400">{book.title}</span> by {book.author}</li>)}
-                        </ul>
+                        <ul className="list-disc list-inside space-y-1">{books.map((book, i) => <li key={i}><span className="text-green-400">{book.title}</span> by {book.author}</li>)}</ul>
                     </div>
                 );
                 break;
@@ -257,31 +199,39 @@ const App: React.FC = () => {
             case 'vipassana':
             case 'lawofaverages':
             case 'timemanagement':
-                const essays: {[key: string]: string} = {
-                    datascience: dataScienceEssay,
-                    vipassana: vipassanaEssay,
-                    lawofaverages: lawOfAveragesEssay,
-                    timemanagement: timeManagementEssay,
-                };
+                const essays: {[key: string]: string} = { datascience: dataScienceEssay, vipassana: vipassanaEssay, lawofaverages: lawOfAveragesEssay, timemanagement: timeManagementEssay };
+                output = <div className="space-y-3">{essays[commandName].split('\n\n').map((p, i) => <p key={i}>{p}</p>)}</div>;
+                break;
+            case 'ls':
+                output = <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4">{commands.map(c => <span key={c}>{c}</span>)}</div>;
+                break;
+            case 'll':
                 output = (
-                    <div className="space-y-3">
-                        {essays[cmd].split('\n\n').map((p, i) => <p key={i}>{p}</p>)}
+                    <div>
+                        {Object.entries(commandList).map(([key, value]) => (
+                            <div key={key} className="flex items-start">
+                                <span className="text-amber-300 w-40 flex-shrink-0">{key}</span>
+                                <span className="flex-1">{value}</span>
+                            </div>
+                        ))}
                     </div>
                 );
                 break;
             case 'clear':
+                const welcomeMessage = (
+                    <div key="welcome">
+                        <AsciiArt />
+                        <p className="mt-4">Welcome to my interactive portfolio.</p>
+                        <p>Type <span className="text-amber-300">'help'</span> to see a list of available commands.</p>
+                    </div>
+                );
                 setHistory([welcomeMessage]);
                 return;
             default:
-                if (cmd.trim() === '') {
-                    output = <div />;
-                } else {
-                    output = <p>Command not found: '{cmd}'. Type 'help' for a list of commands.</p>;
-                }
+                output = cmd.trim() === '' ? <div /> : <p>Command not found: '{cmd}'. Type 'help' for a list of commands.</p>;
         }
-        
-        const newHistory = [
-            ...history,
+
+        const newHistory = (
             <div key={history.length}>
                 <div className="flex items-center">
                     <span className="text-teal-300">kdahal</span>
@@ -292,11 +242,11 @@ const App: React.FC = () => {
                 </div>
                 <div className="mt-1">{output}</div>
             </div>
-        ];
+        );
         
-        setHistory(newHistory);
+        setHistory(prev => [...prev, newHistory]);
         if (cmd.trim()) {
-            setCommandHistory([cmd, ...commandHistory]);
+            setCommandHistory(prev => [cmd, ...prev]);
         }
         setHistoryIndex(-1);
     };
@@ -324,18 +274,47 @@ const App: React.FC = () => {
               setHistoryIndex(-1);
               setCommand('');
             }
+        } else if (e.key === 'Tab') {
+            e.preventDefault();
+            const currentCmd = command.trim();
+            if (currentCmd) {
+                const matches = commands.filter(c => c.startsWith(currentCmd));
+                if (matches.length === 1) {
+                    setCommand(matches[0]);
+                } else if (matches.length > 1) {
+                    const completions = <p className="text-slate-400">{matches.join('   ')}</p>;
+                    setHistory(prev => [...prev, completions]);
+                }
+            }
         }
     };
 
     return (
-        <div className="p-4 md:p-6 lg:p-8 min-h-screen">
-            <div className="space-y-4">
-                {history.map((line, index) => <div key={index}>{line}</div>)}
+        <div className="p-4 md:p-6 lg:p-8 h-screen" onClick={focusInput}>
+            <div className="h-full overflow-y-auto space-y-4">
+                {history}
+                <div onKeyDown={handleKeyDown}>
+                    <div className="flex items-center">
+                        <span className="text-teal-300">kdahal</span>
+                        <span className="text-slate-400">@</span>
+                        <span className="text-fuchsia-400">geokshitij.github.io</span>
+                        <span className="text-slate-400">:$ ~ </span>
+                        <form onSubmit={(e) => { e.preventDefault(); handleCommand(); }} className="flex-1">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={command}
+                                onChange={(e) => setCommand(e.target.value)}
+                                className="prompt-input"
+                                autoFocus
+                                spellCheck="false"
+                                autoComplete="off"
+                            />
+                        </form>
+                    </div>
+                </div>
+                <div ref={terminalEndRef} />
             </div>
-            <div onKeyDown={handleKeyDown}>
-                <Prompt command={command} onCommandChange={setCommand} handleCommand={handleCommand} />
-            </div>
-            <div ref={terminalEndRef} />
         </div>
     );
 };
